@@ -1,0 +1,7 @@
+{
+  "name": "crypTxt",
+  "version": "1.0.0",
+  "dependencies": {
+    "@handcash/handcash-connect": "^0.8.9"
+  }
+}
