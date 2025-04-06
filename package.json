@@ -1,7 +1,14 @@
 {
   "name": "crypTxt",
   "version": "1.0.0",
+  "main": "api/pay.js",
+  "scripts": {
+    "start": "node api/pay.js"
+  },
   "dependencies": {
     "@handcash/handcash-connect": "^0.8.9"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
