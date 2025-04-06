@@ -2,11 +2,10 @@ console.log("script.js loaded");
 
 const secretKey = "mySuperSecretKey123";
 let lastEncryptedMessage = "";
-const appId = "67f14bb216cc6685cf32451d"; // Your App ID—double-check it’s exact
+const appId = "67f14bb216cc6685cf32451d";
 let authToken = null;
 let freeMessagesLeft = 5;
 
-// Handle auth token from URL
 const urlParams = new URLSearchParams(window.location.search);
 authToken = urlParams.get("authToken");
 if (authToken) {
@@ -14,13 +13,12 @@ if (authToken) {
   document.getElementById("paymentStatus").innerText = "Payment Status: Logged in";
 }
 
-function login() {
-  const redirectUrl = window.location.href; // Repl.it URL
-  // Manual URL per HandCash docs: https://app.handcash.io/#/authorizeApp?appId=${appId}
-  const connectUrl = `https://app.handcash.io/#/authorizeApp?appId=${appId}&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+async function login() {
+  const response = await fetch('/api/pay', { method: 'GET' });
+  const { connectUrl } = await response.json();
   console.log("Open this in a new tab: " + connectUrl);
-  document.getElementById("status").innerText = "Status: Check console for HandCash login URL, then paste authToken back here!";
-  // window.location.href = connectUrl; // Disabled for Repl.it—uncomment later
+  document.getElementById("status").innerText = "Status: Check console for HandCash login URL.";
+  window.location.href = connectUrl; // Redirects on Vercel
 }
 
 async function sendMessage() {
@@ -40,10 +38,20 @@ async function sendMessage() {
   } else if (!authToken) {
     document.getElementById("status").innerText = "Status: Login with HandCash to send more!";
   } else {
-    // Placeholder for payment logic (we’ll add tomorrow with Vercel)
-    document.getElementById("status").innerText = `Status: Encrypted: ${encrypted} (Payment coming soon - authToken: ${authToken})`;
-    document.getElementById("paymentStatus").innerText = "Payment Status: Logged in, payment TBD";
-    document.getElementById("message").value = "";
+    try {
+      const response = await fetch('/api/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ authToken })
+      });
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      document.getElementById("status").innerText = `Status: Encrypted: ${encrypted} (Payment ID: ${data.transactionId})`;
+      document.getElementById("paymentStatus").innerText = "Payment Status: Paid 100 Satoshis";
+      document.getElementById("message").value = "";
+    } catch (error) {
+      document.getElementById("status").innerText = `Status: Payment failed: ${error.message}`;
+    }
   }
 }
 
