@@ -6,33 +6,44 @@ const appId = "67f14bb216cc6685cf32451d"; // Your HandCash appId
 let authToken = null;
 let freeMessagesLeft = 5;
 
-// Handle authToken from URL redirect
-const urlParams = new URLSearchParams(window.location.search);
-authToken = urlParams.get("authToken");
-if (authToken) {
-  localStorage.setItem("authToken", authToken); // Store persistently
-  document.getElementById("loginButton").style.display = "none";
-  document.getElementById("paymentStatus").innerText = "Payment Status: Logged in";
-  window.history.replaceState({}, document.title, "/"); // Clean URL
-}
+// Wait for DOM to load
+document.addEventListener("DOMContentLoaded", () => {
+  // Handle authToken from URL redirect
+  const urlParams = new URLSearchParams(window.location.search);
+  authToken = urlParams.get("authToken");
+  if (authToken) {
+    localStorage.setItem("authToken", authToken); // Store persistently
+    document.getElementById("loginButton").style.display = "none";
+    document.getElementById("paymentStatus").innerText = "Payment Status: Logged in";
+    window.history.replaceState({}, document.title, "/"); // Clean URL
+  }
 
-// Login with HandCash
-document.getElementById("loginButton").addEventListener("click", async () => {
-  try {
-    const response = await fetch("/api/pay", { method: "GET" });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    if (data.redirectUrl) {
-      console.log("Redirecting to:", data.redirectUrl);
-      window.location.href = data.redirectUrl; // Redirect to HandCash
-    } else {
-      throw new Error("No redirect URL received");
-    }
-  } catch (error) {
-    console.error("Login error:", error.message);
-    document.getElementById("status").innerText = "Status: Login failed. Check console for details.";
+  // Login with HandCash
+  const loginButton = document.getElementById("loginButton");
+  if (loginButton) {
+    loginButton.addEventListener("click", async () => {
+      console.log("Login button clicked"); // Debug
+      try {
+        const response = await fetch("/api/pay", { method: "GET" });
+        console.log("Fetch response status:", response.status); // Debug
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("API response data:", data); // Debug
+        if (data.redirectUrl) {
+          console.log("Redirecting to:", data.redirectUrl);
+          window.location.href = data.redirectUrl; // Redirect to HandCash
+        } else {
+          throw new Error("No redirect URL received");
+        }
+      } catch (error) {
+        console.error("Login error:", error.message);
+        document.getElementById("status").innerText = "Status: Login failed. Check console for details.";
+      }
+    });
+  } else {
+    console.error("Login button not found in DOM");
   }
 });
 
