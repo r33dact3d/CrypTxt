@@ -14,11 +14,18 @@ if (authToken) {
 }
 
 async function login() {
-  const response = await fetch('/api/pay', { method: 'GET' });
-  const { connectUrl } = await response.json();
-  console.log("Open this in a new tab: " + connectUrl);
-  document.getElementById("status").innerText = "Status: Check console for HandCash login URL.";
-  window.location.href = connectUrl; // Redirects on Vercel
+  try {
+    const response = await fetch('/api/pay', { method: 'GET' });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const { connectUrl } = await response.json();
+    console.log("Connect URL:", connectUrl);
+    window.location.href = connectUrl;
+  } catch (error) {
+    console.error("Login error:", error);
+    document.getElementById("status").innerText = "Status: Login failed. Check console for details.";
+  }
 }
 
 async function sendMessage() {
