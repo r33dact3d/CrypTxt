@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://app.handcash.io https://cryptxt.vercel.app;">
   <title>CrypTxt Messaging</title>
   <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="/logo.png">
@@ -59,4 +58,11 @@
   <br>
   <button onclick="sendMessage()">Send to BSV</button>
   <button onclick="decryptMessage()">Decrypt Last Message</button>
-  <button id="testButton
+  <button id="testButton">Send Test Message</button>
+  <p id="status">Status: Ready</p>
+  <p id="paymentStatus">Payment Status: Not logged in</p>
+  <script src="https://unpkg.com/bsv@2.0.10/bsv.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="/script.js"></script>
+</body>
+</html>
