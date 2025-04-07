@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CrypTxt Messaging</title>
   <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="/logo.png"> <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/logo.png">
   <style>
     body {
       background-color: #101010;
@@ -26,6 +26,11 @@
       padding: 10px;
       margin: 5px;
       cursor: pointer;
+      transition: transform 0.2s, background-color 0.2s; /* Animation */
+    }
+    button:hover {
+      background-color: #e68a00; /* Darker orange on hover */
+      transform: scale(1.05); /* Slight grow effect */
     }
     textarea {
       background-color: #1a1a1a;
@@ -35,15 +40,16 @@
     }
     #logo {
       display: block;
-      margin: 0 auto 20px; /* Centers logo, adds space below */
-      max-width: 200px; /* Adjust size as needed */
+      margin: 0 auto 20px;
+      max-width: 200px;
     }
   </style>
 </head>
 <body>
-  <img id="logo" src="/logo.png" alt="CrypTxt Logo"> <!-- On-page logo -->
+  <img id="logo" src="/logo.png" alt="CrypTxt Logo">
   <h1>CrypTxt Messaging</h1>
   <p>Type your encrypted messages below and send it to the BSV blockchain!</p>
+  <p id="loginStatus">Not logged in</p> <!-- New login status -->
   <button id="loginButton">Login with HandCash</button>
   <textarea id="message" rows="4" cols="50" placeholder="Type your message here..."></textarea>
   <br>
