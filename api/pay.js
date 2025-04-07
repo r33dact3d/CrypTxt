@@ -1,69 +1,30 @@
 const { HandCashConnect } = require('@handcash/handcash-connect');
-
 const handCashConnect = new HandCashConnect({
   appId: process.env.HANDCASH_APP_ID,
-  appSecret: process.env.HANDCASH_APP_SECRET
+  appSecret: process.env.HANDCASH_APP_SECRET,
 });
 
 module.exports = async (req, res) => {
-  if (req.method === 'GET') {
-    try {
-      const redirectUrl = handCashConnect.getRedirectionUrl();
-      console.log('Redirect URL generated:', redirectUrl);
-      res.status(200).json({ redirectUrl });
-    } catch (error) {
-      console.error('Error generating redirect URL:', error.message);
-      res.status(500).json({ error: 'Failed to generate login URL' });
-    }
-  } else if (req.method === 'POST') {
-    try {
-      const { authToken, action, encryptedMessage } = req.body;
-      if (!authToken) {
-        return res.status(400).json({ error: 'authToken required' });
-      }
-      const account = handCashConnect.getAccountFromAuthToken(authToken);
+  const { authToken, message } = req.body;
+  const account = handCashConnect.getAccountFromAuthToken(authToken);
 
-      if (action === "getProfile") {
-        const profile = await account.profile.getPublicProfile();
-        console.log('Profile fetched:', profile);
-        res.status(200).json({ handle: profile.publicInfo.handle });
-      } else if (action === "sendMessage") {
-        if (!encryptedMessage) {
-          return res.status(400).json({ error: 'encryptedMessage required' });
-        }
-        const paymentParameters = {
-          payments: [{
-            destination: 'styraks', // Keep your personal handle
-            currencyCode: 'SAT',
-            sendAmount: 100
-          }],
-          description: 'CrypTxt Message'
-        };
-        const paymentResult = await account.wallet.pay(paymentParameters);
-        console.log('Payment successful:', paymentResult);
+  // Test payment
+  const paymentParameters = {
+    destination: 'yourhandle$handcash.io', // Your HandCash handle
+    currencyCode: 'BSV',
+    sendAmount: 0.0001, // 100 Satoshis
+  };
+  const paymentResult = await account.wallet.pay(paymentParameters);
 
-        // Temporarily disable blockchain write
-        /*
-        const dataResult = await account.data.write({
-          appId: process.env.HANDCASH_APP_ID,
-          data: encryptedMessage,
-          format: 'text/plain'
-        });
-        console.log('Data written to blockchain:', dataResult);
-        */
+  // Test data write
+  const dataParameters = {
+    format: 'utf8',
+    content: message, // Encrypted message from client
+  };
+  const dataResult = await account.data.write(dataParameters);
 
-        res.status(200).json({
-          transactionId: paymentResult.transactionId,
-          dataId: 'pending-write-items' // Placeholder
-        });
-      } else {
-        res.status(400).json({ error: 'Invalid action' });
-      }
-    } catch (error) {
-      console.error('POST error:', error.message);
-      res.status(500).json({ error: error.message });
-    }
-  } else {
-    res.status(405).json({ error: 'Method not allowed. Use GET or POST.' });
-  }
+  res.json({
+    txId: paymentResult.transactionId,
+    dataId: dataResult.id,
+  });
 };
