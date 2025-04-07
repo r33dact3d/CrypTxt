@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   authToken = urlParams.get("authToken");
   if (authToken) {
     localStorage.setItem("authToken", authToken);
-    document.getElementById("loginButton").style.display = "none";
+    document.getElementById("loginButton").classList.add("hidden");
     document.getElementById("paymentStatus").innerText = "Payment Status: Logged in";
     window.history.replaceState({}, document.title, "/");
     fetchUserProfile(authToken);
@@ -38,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Login button not found in DOM");
   }
 
-  // Add test button listener
   const testButton = document.getElementById("testButton");
   if (testButton) {
     testButton.addEventListener("click", sendTestMessage);
@@ -71,4 +70,66 @@ async function sendMessage() {
   const encrypted = CryptoJS.AES.encrypt(message, secretKey).toString();
   lastEncryptedMessage = encrypted;
   if (freeMessagesLeft > 0) {
-    free
+    freeMessagesLeft--;
+    document.getElementById("status").innerText = `Status: Encrypted: ${encrypted} (Free left: ${freeMessagesLeft})`;
+    document.getElementById("message").value = "";
+  } else if (!authToken && !localStorage.getItem("authToken")) {
+    document.getElementById("status").innerText = "Status: Login with HandCash to send more!";
+  } else {
+    try {
+      const storedAuthToken = localStorage.getItem("authToken") || authToken;
+      const response = await fetch("/api/pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          authToken: storedAuthToken,
+          action: "sendMessage",
+          encryptedMessage: encrypted,
+        }),
+      });
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      document.getElementById("status").innerText = `Status: Encrypted: ${encrypted} (TxID: ${data.transactionId}, DataID: ${data.dataId})`;
+      document.getElementById("paymentStatus").innerText = "Payment Status: Paid 100 Satoshis";
+      document.getElementById("message").value = "";
+    } catch (error) {
+      console.error("Payment error:", error.message);
+      document.getElementById("status").innerText = `Status: Payment failed: ${error.message}`;
+    }
+  }
+}
+
+function decryptMessage() {
+  if (!lastEncryptedMessage) {
+    document.getElementById("status").innerText = "Status: No message to decrypt yet!";
+    return;
+  }
+  const decrypted = CryptoJS.AES.decrypt(lastEncryptedMessage, secretKey).toString(CryptoJS.enc.Utf8);
+  document.getElementById("status").innerText = `Status: Decrypted: ${decrypted}`;
+}
+
+async function sendTestMessage() {
+  const plainMessage = "Hello, BSV! This is a test.";
+  const encryptedMessage = CryptoJS.AES.encrypt(plainMessage, secretKey).toString();
+  const storedAuthToken = localStorage.getItem("authToken") || authToken;
+
+  if (!storedAuthToken) {
+    document.getElementById("status").innerText = "Status: Please log in with HandCash first!";
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/pay", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        authToken: storedAuthToken,
+        action: "sendMessage",
+        encryptedMessage: encryptedMessage,
+      }),
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    console.log("Test Payment TxID:", data.transactionId);
+    console.log("Test Data ID:", data.dataId);
+    document.getElementById("status").innerText = `Status: Test
