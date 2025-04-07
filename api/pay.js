@@ -31,10 +31,9 @@ module.exports = async (req, res) => {
         if (!encryptedMessage) {
           return res.status(400).json({ error: 'encryptedMessage required' });
         }
-        // Pay 100 Satoshis to your HandCash handle
         const paymentParameters = {
           payments: [{
-            destination: 'styraks', // Replace with your real HandCash handle (e.g., @crypTxtDev)
+            destination: 'styraks', // Keep your personal handle
             currencyCode: 'SAT',
             sendAmount: 100
           }],
@@ -43,17 +42,19 @@ module.exports = async (req, res) => {
         const paymentResult = await account.wallet.pay(paymentParameters);
         console.log('Payment successful:', paymentResult);
 
-        // Write encrypted message to BSV blockchain
+        // Temporarily disable blockchain write
+        /*
         const dataResult = await account.data.write({
           appId: process.env.HANDCASH_APP_ID,
           data: encryptedMessage,
           format: 'text/plain'
         });
         console.log('Data written to blockchain:', dataResult);
+        */
 
         res.status(200).json({
           transactionId: paymentResult.transactionId,
-          dataId: dataResult.id
+          dataId: 'pending-write-items' // Placeholder
         });
       } else {
         res.status(400).json({ error: 'Invalid action' });
