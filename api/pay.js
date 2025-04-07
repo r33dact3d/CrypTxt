@@ -7,7 +7,6 @@ const handCashConnect = new HandCashConnect({
 
 module.exports = async (req, res) => {
   if (req.method === 'GET') {
-    // Handle login redirect
     const redirectUrl = handCashConnect.getRedirectionUrl();
     return res.status(200).json({ redirectUrl });
   }
@@ -35,15 +34,13 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'No encrypted message provided' });
       }
 
-      // Payment
       const paymentParameters = {
-        destination: 'Styraks@handcash.io', // Set to styraks as requested
+        destination: 'styraks@handcash.io', // Updated to paymail format
         currencyCode: 'BSV',
         sendAmount: 0.0001, // 100 Satoshis
       };
       const paymentResult = await account.wallet.pay(paymentParameters);
 
-      // Blockchain write
       const dataParameters = {
         format: 'utf8',
         content: encryptedMessage,
