@@ -34,7 +34,7 @@ module.exports = async (req, res) => {
         // Pay 100 Satoshis to your HandCash handle
         const paymentParameters = {
           payments: [{
-            destination: '@r33dact3d', // Replace with your actual HandCash handle
+            destination: '@styraks', // Replace with your real HandCash handle (e.g., @crypTxtDev)
             currencyCode: 'SAT',
             sendAmount: 100
           }],
