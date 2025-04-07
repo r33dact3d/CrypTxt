@@ -2,60 +2,68 @@ const { HandCashConnect } = require('@handcash/handcash-connect');
 
 const handCashConnect = new HandCashConnect({
   appId: process.env.HANDCASH_APP_ID,
-  appSecret: process.env.HANDCASH_APP_SECRET,
+  appSecret: process.env.HANDCASH_APP_SECRET
 });
 
 module.exports = async (req, res) => {
   if (req.method === 'GET') {
-    const redirectUrl = handCashConnect.getRedirectionUrl();
-    return res.status(200).json({ redirectUrl });
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { authToken, action, encryptedMessage } = req.body;
-
-  if (!authToken) {
-    return res.status(401).json({ error: 'No auth token provided' });
-  }
-
-  const account = handCashConnect.getAccountFromAuthToken(authToken);
-
-  try {
-    if (action === 'getProfile') {
-      const profile = await account.profile.getPublicProfile();
-      return res.status(200).json({ handle: profile.publicInfo.handle });
+    try {
+      const redirectUrl = handCashConnect.getRedirectionUrl();
+      console.log('Redirect URL generated:', redirectUrl);
+      res.status(200).json({ redirectUrl });
+    } catch (error) {
+      console.error('Error generating redirect URL:', error.message);
+      res.status(500).json({ error: 'Failed to generate login URL' });
     }
-
-    if (action === 'sendMessage') {
-      if (!encryptedMessage) {
-        return res.status(400).json({ error: 'No encrypted message provided' });
+  } else if (req.method === 'POST') {
+    try {
+      const { authToken, action, encryptedMessage } = req.body;
+      if (!authToken) {
+        return res.status(400).json({ error: 'authToken required' });
       }
+      const account = handCashConnect.getAccountFromAuthToken(authToken);
 
-      const paymentParameters = {
-        destination: 'styraks@handcash.io', // Updated to paymail format
-        currencyCode: 'BSV',
-        sendAmount: 0.0001, // 100 Satoshis
-      };
-      const paymentResult = await account.wallet.pay(paymentParameters);
+      if (action === "getProfile") {
+        const profile = await account.profile.getPublicProfile();
+        console.log('Profile fetched:', profile);
+        res.status(200).json({ handle: profile.publicInfo.handle });
+      } else if (action === "sendMessage") {
+        if (!encryptedMessage) {
+          return res.status(400).json({ error: 'encryptedMessage required' });
+        }
+        const paymentParameters = {
+          payments: [{
+            destination: 'styraks', // Keep your personal handle
+            currencyCode: 'SAT',
+            sendAmount: 100
+          }],
+          description: 'CrypTxt Message'
+        };
+        const paymentResult = await account.wallet.pay(paymentParameters);
+        console.log('Payment successful:', paymentResult);
 
-      const dataParameters = {
-        format: 'utf8',
-        content: encryptedMessage,
-      };
-      const dataResult = await account.data.write(dataParameters);
+        // Temporarily disable blockchain write
+        /*
+        const dataResult = await account.data.write({
+          appId: process.env.HANDCASH_APP_ID,
+          data: encryptedMessage,
+          format: 'text/plain'
+        });
+        console.log('Data written to blockchain:', dataResult);
+        */
 
-      return res.status(200).json({
-        transactionId: paymentResult.transactionId,
-        dataId: dataResult.id,
-      });
+        res.status(200).json({
+          transactionId: paymentResult.transactionId,
+          dataId: 'pending-write-items' // Placeholder
+        });
+      } else {
+        res.status(400).json({ error: 'Invalid action' });
+      }
+    } catch (error) {
+      console.error('POST error:', error.message);
+      res.status(500).json({ error: error.message });
     }
-
-    return res.status(400).json({ error: 'Invalid action' });
-  } catch (error) {
-    console.error('API error:', error.message);
-    return res.status(500).json({ error: error.message });
+  } else {
+    res.status(405).json({ error: 'Method not allowed. Use GET or POST.' });
   }
 };
