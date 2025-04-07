@@ -17,19 +17,46 @@ module.exports = async (req, res) => {
     }
   } else if (req.method === 'POST') {
     try {
-      const { authToken, action } = req.body;
+      const { authToken, action, encryptedMessage } = req.body;
       if (!authToken) {
         return res.status(400).json({ error: 'authToken required' });
       }
       const account = handCashConnect.getAccountFromAuthToken(authToken);
-      
+
       if (action === "getProfile") {
         const profile = await account.profile.getPublicProfile();
         console.log('Profile fetched:', profile);
         res.status(200).json({ handle: profile.publicInfo.handle });
+      } else if (action === "sendMessage") {
+        if (!encryptedMessage) {
+          return res.status(400).json({ error: 'encryptedMessage required' });
+        }
+        // Pay 100 Satoshis
+        const paymentParameters = {
+          payments: [{
+            destination: 'app', // Funds go to your app’s wallet
+            currencyCode: 'SAT',
+            sendAmount: 100
+          }],
+          description: 'CrypTxt Message'
+        };
+        const paymentResult = await account.wallet.pay(paymentParameters);
+        console.log('Payment successful:', paymentResult);
+
+        // Write encrypted message to BSV blockchain
+        const dataResult = await account.data.write({
+          appId: process.env.HANDCASH_APP_ID,
+          data: encryptedMessage,
+          format: 'text/plain'
+        });
+        console.log('Data written to blockchain:', dataResult);
+
+        res.status(200).json({
+          transactionId: paymentResult.transactionId,
+          dataId: dataResult.id // Unique ID of the blockchain entry
+        });
       } else {
-        // Placeholder for payment logic (to be expanded later)
-        res.status(400).json({ error: 'Action not supported yet' });
+        res.status(400).json({ error: 'Invalid action' });
       }
     } catch (error) {
       console.error('POST error:', error.message);
