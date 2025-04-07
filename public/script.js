@@ -1,7 +1,7 @@
 console.log("script.js loaded");
 const secretKey = "mySuperSecretKey123";
 let lastEncryptedMessage = "";
-const appId = "67f305d2c11903f64acea4f6";
+const appId = "67f14bb216cc6685cf32451d";
 let authToken = null;
 let freeMessagesLeft = 5;
 
@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("loginButton").style.display = "none";
     document.getElementById("paymentStatus").innerText = "Payment Status: Logged in";
     window.history.replaceState({}, document.title, "/");
+    fetchUserProfile(authToken); // Fetch profile after login
   }
 
   const loginButton = document.getElementById("loginButton");
@@ -42,6 +43,24 @@ document.addEventListener("DOMContentLoaded", () => {
     console.error("Login button not found in DOM");
   }
 });
+
+// Fetch HandCash user profile
+async function fetchUserProfile(authToken) {
+  try {
+    const response = await fetch("/api/pay", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ authToken, action: "getProfile" })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    const handle = data.handle;
+    document.getElementById("loginStatus").innerText = `Logged in as ${handle}`;
+  } catch (error) {
+    console.error("Profile fetch error:", error.message);
+    document.getElementById("loginStatus").innerText = "Logged in as [Unknown]";
+  }
+}
 
 async function sendMessage() {
   const message = document.getElementById("message").value;
