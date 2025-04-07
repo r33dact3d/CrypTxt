@@ -1,7 +1,7 @@
 console.log("script.js loaded");
 const secretKey = "mySuperSecretKey123";
 let lastEncryptedMessage = "";
-const appId = "67f14bb216cc6685cf32451d";
+const appId = "67f305d2c11903f64acea4f6";
 let authToken = null;
 let freeMessagesLeft = 5;
 
