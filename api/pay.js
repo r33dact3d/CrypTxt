@@ -31,10 +31,10 @@ module.exports = async (req, res) => {
         if (!encryptedMessage) {
           return res.status(400).json({ error: 'encryptedMessage required' });
         }
-        // Pay 100 Satoshis
+        // Pay 100 Satoshis to your HandCash handle
         const paymentParameters = {
           payments: [{
-            destination: 'app', // Funds go to your app’s wallet
+            destination: '@r33dact3d', // Replace with your actual HandCash handle
             currencyCode: 'SAT',
             sendAmount: 100
           }],
@@ -53,7 +53,7 @@ module.exports = async (req, res) => {
 
         res.status(200).json({
           transactionId: paymentResult.transactionId,
-          dataId: dataResult.id // Unique ID of the blockchain entry
+          dataId: dataResult.id
         });
       } else {
         res.status(400).json({ error: 'Invalid action' });
