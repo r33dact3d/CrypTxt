@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
 
       // Payment
       const paymentParameters = {
-        destination: 'styraks$handcash.io', // Set to styraks as requested
+        destination: 'Styraks$handcash.io', // Set to styraks as requested
         currencyCode: 'BSV',
         sendAmount: 0.0001, // 100 Satoshis
       };
