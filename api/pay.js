@@ -17,24 +17,22 @@ module.exports = async (req, res) => {
     }
   } else if (req.method === 'POST') {
     try {
-      const { authToken } = req.body;
+      const { authToken, action } = req.body;
       if (!authToken) {
         return res.status(400).json({ error: 'authToken required' });
       }
       const account = handCashConnect.getAccountFromAuthToken(authToken);
-      const paymentParameters = {
-        payments: [{
-          destination: 'app', // Pay to your app’s wallet
-          currencyCode: 'SAT',
-          sendAmount: 100
-        }],
-        description: 'CrypTxt Message'
-      };
-      const paymentResult = await account.wallet.pay(paymentParameters);
-      console.log('Payment successful:', paymentResult);
-      res.status(200).json({ transactionId: paymentResult.transactionId });
+      
+      if (action === "getProfile") {
+        const profile = await account.profile.getPublicProfile();
+        console.log('Profile fetched:', profile);
+        res.status(200).json({ handle: profile.publicInfo.handle });
+      } else {
+        // Placeholder for payment logic (to be expanded later)
+        res.status(400).json({ error: 'Action not supported yet' });
+      }
     } catch (error) {
-      console.error('Payment error:', error.message);
+      console.error('POST error:', error.message);
       res.status(500).json({ error: error.message });
     }
   } else {
