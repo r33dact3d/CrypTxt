@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("loginButton").style.display = "none";
     document.getElementById("paymentStatus").innerText = "Payment Status: Logged in";
     window.history.replaceState({}, document.title, "/");
-    fetchUserProfile(authToken); // Fetch profile after login
+    fetchUserProfile(authToken);
   }
 
   const loginButton = document.getElementById("loginButton");
@@ -44,7 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Fetch HandCash user profile
 async function fetchUserProfile(authToken) {
   try {
     const response = await fetch("/api/pay", {
@@ -82,11 +81,15 @@ async function sendMessage() {
       const response = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ authToken: storedAuthToken })
+        body: JSON.stringify({
+          authToken: storedAuthToken,
+          action: "sendMessage",
+          encryptedMessage: encrypted
+        })
       });
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      document.getElementById("status").innerText = `Status: Encrypted: ${encrypted} (Payment ID: ${data.transactionId})`;
+      document.getElementById("status").innerText = `Status: Encrypted: ${encrypted} (TxID: ${data.transactionId}, DataID: ${data.dataId})`;
       document.getElementById("paymentStatus").innerText = "Payment Status: Paid 100 Satoshis";
       document.getElementById("message").value = "";
     } catch (error) {
